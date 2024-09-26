@@ -1,0 +1,59 @@
+## 10 Easy level questions on Customer and Credit Analytics
+
+1.List customers with an income above $100,000 and their corresponding credit limits.
+SELECT c.Client_Num, c.Income, cc.Credit_Limit
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num
+WHERE c.Income > 100000;
+
+2.List all customers who have not activated their credit card within 30 days.
+SELECT c.Client_Num, c.Customer_Age, cc.Activation_30_Days
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num
+WHERE cc.Activation_30_Days = 'No';
+
+3.List all customers along with their corresponding credit card details.
+SELECT c.*, cc.*
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num;
+
+4. Find all customers who are delinquent on their credit cards.
+SELECT c.Client_Num, c.Customer_Age, c.Gender, cc.Delinquent_Acc
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num
+WHERE cc.Delinquent_Acc = 'Yes';
+
+5.List the total number of clients in each job category with a customer satisfaction score below 3.
+SELECT Customer_Job, COUNT(Client_Num) AS Num_Clients
+FROM your_table_name
+WHERE Cust_Satisfaction_Score < 3
+GROUP BY Customer_Job;
+
+6.Find the maximum and minimum income for each state.
+SELECT state_cd, MAX(Income) AS Max_Income, MIN(Income) AS Min_Income
+FROM your_table_name
+GROUP BY state_cd;
+
+7.List education levels with the average number of dependents greater than 1.
+SELECT Education_Level, AVG(Dependent_Count) AS Avg_Dependents
+FROM your_table_name
+GROUP BY Education_Level
+HAVING Avg_Dependents > 1;
+
+8.Find the number of male and female clients in each state, ordered by state.
+SELECT state_cd, Gender, COUNT(Client_Num) AS Num_Clients
+FROM your_table_name
+GROUP BY state_cd, Gender
+ORDER BY state_cd;
+
+9.Find the average income for each education level.
+SELECT Education_Level, AVG(Income) AS Avg_Income
+FROM your_table_name
+GROUP BY Education_Level;
+
+10.Find card categories with an average annual fee greater than $50 and order by average annual fees in ascending order.
+SELECT Card_Category, AVG(Annual_Fees) AS Avg_Annual_Fees
+FROM your_table_name
+GROUP BY Card_Category
+HAVING Avg_Annual_Fees > 50
+ORDER BY Avg_Annual_Fees ASC;
