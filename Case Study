@@ -1,0 +1,218 @@
+##Case Study releted questions
+
+### **Customer Segmentation & Profiling**
+
+1. **Which customer segment (based on income and age) has the highest average credit limit?**
+   SELECT 
+    CASE 
+        WHEN Customer_Age BETWEEN 18 AND 25 THEN '18-25'
+        WHEN Customer_Age BETWEEN 26 AND 35 THEN '26-35'
+        WHEN Customer_Age BETWEEN 36 AND 50 THEN '36-50'
+        ELSE '51+' 
+    END AS Age_Group,
+    CASE 
+        WHEN Income < 30000 THEN '< 30K'
+        WHEN Income BETWEEN 30000 AND 70000 THEN '30K-70K'
+        ELSE '> 70K' 
+    END AS Income_Group,
+    AVG(Credit_Limit) AS Avg_Credit_Limit
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+GROUP BY Age_Group, Income_Group;
+
+  
+
+2. **Which education level group has the highest average customer satisfaction score?**
+   SELECT Education_Level, AVG(Cust_Satisfaction_Score) AS Avg_Satisfaction
+FROM customer
+GROUP BY Education_Level;
+
+
+3. **How does marital status impact the likelihood of owning a car or a house?**
+   - Query:Compare the percentage of car and house owners by marital status.
+    SELECT 
+    Marital_Status,
+    SUM(Car_Owner = 'Yes') / COUNT(*) * 100 AS Car_Owner_Percentage,
+    SUM(House_Owner = 'Yes') / COUNT(*) * 100 AS House_Owner_Percentage
+FROM customer
+GROUP BY Marital_Status;
+
+
+### **Credit Card Usage & Financial Behavior**
+
+4. **Which customers have the highest utilization of their credit limit?**
+   - Query: Calculating the utilization ratio (Total_Revolving_Bal / Credit_Limit) for each customer and identify the top users.
+  SELECT 
+    customer.Client_Num,
+    (Total_Revolving_Bal / Credit_Limit) AS Utilization_Ratio
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+ORDER BY Utilization_Ratio DESC
+LIMIT 10;
+
+
+
+5. **Which card category shows the highest total transaction amount per customer on average?**
+   - Query: Group customers by card category and calculate the average total transaction amount.
+SELECT 
+    Card_Category, 
+    AVG(Total_Trans_Amt) AS Avg_Transaction_Amt
+FROM credit_card
+GROUP BY Card_Category;
+
+
+6. **What is the distribution of credit limits across different card categories?**
+   - Query: Analyze the range and distribution of credit limits for each card category.
+SELECT 
+    Card_Category, 
+    MIN(Credit_Limit) AS Min_Credit_Limit, 
+    MAX(Credit_Limit) AS Max_Credit_Limit, 
+    AVG(Credit_Limit) AS Avg_Credit_Limit
+FROM credit_card
+GROUP BY Card_Category;
+
+### **Customer Satisfaction & Loyalty**
+
+7. **Which demographic group (age, gender, income) has the lowest customer satisfaction score?**
+   - Query: Group customers by age, gender, and income, then calculate the average satisfaction score to identify the group with the lowest score.
+SELECT 
+    Customer_Age, Gender, Income, 
+    AVG(Cust_Satisfaction_Score) AS Avg_Satisfaction
+FROM customer
+GROUP BY Customer_Age, Gender, Income;
+
+
+8. **How does credit utilization ratio correlate with customer satisfaction?**
+   - Query: Analyze the correlation between `Avg_Utilization_Ratio` and `Cust_Satisfaction_Score`.
+SELECT 
+    Avg_Utilization_Ratio, 
+    Cust_Satisfaction_Score
+FROM credit_card
+JOIN customer ON credit_card.Credit_num = customer.Client_Num;
+
+
+9. **Which customers have shown a significant drop in satisfaction score over time?**
+   - Query: Identify customers whose satisfaction score has decreased in recent data, if historical data is available.
+SELECT 
+    Client_Num, 
+    MIN(Cust_Satisfaction_Score) AS Initial_Score, 
+    MAX(Cust_Satisfaction_Score) AS Recent_Score
+FROM customer
+GROUP BY Client_Num
+HAVING Initial_Score > Recent_Score;
+
+
+### **Financial Trends & Projections**
+
+10. **Which quarter (Qtr) has seen the highest customer acquisition cost (CAC)?**
+    - Query: Group customer acquisition costs by quarter and find the quarter with the highest total CAC.
+SELECT 
+    Qtr, 
+    SUM(Customer_Acq_Cost) AS Total_Acq_Cost
+FROM credit_card
+GROUP BY Qtr
+ORDER BY Total_Acq_Cost DESC
+LIMIT 1;
+
+
+11. **What is the total annual revenue generated from interest earned on credit cards?**
+    - Query: Sum the `Interest_Earned` column across all customers for the current year.
+SELECT 
+    SUM(Interest_Earned) AS Total_Interest_Earned
+FROM credit_card
+WHERE current_year = YEAR(CURDATE());
+
+
+12. **How has credit limit usage changed over the past four quarters?**
+    - Query: Track the total credit limit and revolving balances by quarter to observe changes.
+SELECT 
+    Qtr, 
+    SUM(Credit_Limit) AS Total_Credit_Limit, 
+    SUM(Total_Revolving_Bal) AS Total_Revolving_Bal
+FROM credit_card
+GROUP BY Qtr;
+
+### **Risk Management & Delinquency**
+
+13. **Which customers are most likely to default, based on their delinquent account history?**
+    - Query: Identify customers with multiple delinquent accounts and high utilization ratios.
+SELECT 
+    customer.Client_Num, 
+    Delinquent_Acc, 
+    (Total_Revolving_Bal / Credit_Limit) AS Utilization_Ratio
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+WHERE Delinquent_Acc > 1
+ORDER BY Utilization_Ratio DESC;
+
+
+14. **What is the average income of customers with delinquent accounts?**
+    - Query: Calculate the average income for customers who have one or more delinquent accounts.
+SELECT 
+    AVG(Income) AS Avg_Income
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+WHERE Delinquent_Acc >= 1;
+
+
+15. **What percentage of customers with a personal loan also have delinquent accounts?**
+    - Query: Calculate the percentage of customers who have both a personal loan and delinquent accounts.
+SELECT 
+    (SUM(Personal_loan = 'Yes' AND Delinquent_Acc >= 1) / COUNT(*)) * 100 AS Percentage
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num;
+
+
+### **Marketing & Business Strategy**
+
+16. **Which customers should be targeted for a credit limit increase based on their credit utilization and income?**
+    - Query: Identify customers with high income and high credit utilization ratios who might benefit from a credit limit increase.
+SELECT 
+    customer.Client_Num, 
+    Income, 
+    (Total_Revolving_Bal / Credit_Limit) AS Utilization_Ratio
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+WHERE Income > 70000 AND Utilization_Ratio > 0.8;
+
+
+17. **Which zip codes have the highest average total transaction amounts?**
+    - Query: Group customers by zip code and calculate the average total transaction amount.
+SELECT 
+    Zipcode, 
+    AVG(Total_Trans_Amt) AS Avg_Transaction_Amt
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+GROUP BY Zipcode;
+
+
+18. **Which age group is most likely to activate their credit card within 30 days?**
+    - Query: Calculate the percentage of customers who activated their card within 30 days, grouped by age.
+
+SELECT 
+    Customer_Age, 
+    (SUM(Activation_30_Days = 'Yes') / COUNT(*)) * 100 AS Activation_Percentage
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+GROUP BY Customer_Age;
+
+### **Geographic Analysis**
+
+19. **Which state has the highest average customer satisfaction score?**
+    - Query: Group customers by `state_cd` and calculate the average satisfaction score.
+SELECT 
+    state_cd, 
+    AVG(Cust_Satisfaction_Score) AS Avg_Satisfaction
+FROM customer
+GROUP BY state_cd;
+
+
+20. **Which state or region shows the highest total transaction volume?**
+    - Query: Group customers by state and sum the total transaction volume (`Total_Trans_Vol`) for each state.
+SELECT 
+    state_cd, 
+    SUM(Total_Trans_Vol) AS Total_Transaction_Volume
+FROM customer
+JOIN credit_card ON customer.Client_Num = credit_card.Credit_num
+GROUP BY state_cd;
+
