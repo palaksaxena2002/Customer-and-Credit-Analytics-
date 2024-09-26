@@ -1,0 +1,97 @@
+## 10 Medium level questions on Customer and Credit Analytics
+
+1.Find customers with an income above $50,000 and a high credit utilization ratio (>0.75).
+SELECT c.Client_Num, c.Income, cc.Avg_Utilization_Ratio
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num
+WHERE c.Income > 50000 AND cc.Avg_Utilization_Ratio > 0.75;
+
+2.List customers with a satisfaction score below 3 and their respective revolving balances.
+SELECT c.Client_Num, c.Cust_Satisfaction_Score, cc.Total_Revolving_Bal
+FROM customer c
+JOIN credit_card cc ON c.Client_Num = cc.Credit_num
+WHERE c.Cust_Satisfaction_Score < 3;
+
+3.List customers whose income is greater than the average income in their state.
+SELECT Client_Num, Customer_Age, Income, state_cd
+FROM customer c
+WHERE Income > (
+   SELECT AVG(Income) 
+   FROM customer 
+   WHERE state_cd = c.state_cd
+);
+
+4.Retrieve customers who have more dependents than the average for those in the same marital status group.
+SELECT Client_Num, Marital_Status, Dependent_Count
+FROM customer c
+WHERE Dependent_Count > (
+   SELECT AVG(Dependent_Count) 
+   FROM customer 
+   WHERE Marital_Status = c.Marital_Status
+);
+
+5.List customers whose income is higher than the income of any customer with a personal loan.
+SELECT Client_Num, Customer_Age, Income
+FROM customer
+WHERE Income > (
+   SELECT MAX(Income)
+   FROM customer
+   WHERE Personal_Loan = 'Yes'
+);
+
+6.Find customers who have a credit card but no delinquencies.
+SELECT Client_Num, Customer_Age, Income
+FROM customer
+WHERE Client_Num IN (
+   SELECT Credit_num
+   FROM credit_card
+   WHERE Delinquent_Acc = 'No'
+);
+
+
+7.Find customers whose total revolving balance is higher than the average balance for customers in a specific state.
+SELECT Client_Num, Customer_Age, Income
+FROM customer
+WHERE Client_Num IN (
+   SELECT Credit_num
+   FROM credit_card
+   WHERE Total_Revolving_Bal > (
+      SELECT AVG(Total_Revolving_Bal) 
+      FROM credit_card cc 
+      JOIN customer c ON c.Client_Num = cc.Credit_num 
+      WHERE c.state_cd = 'CA'
+   )
+);
+
+8.Find customers who have a higher customer satisfaction score than the average for their state.
+SELECT Client_Num, Customer_Age, state_cd, Cust_Satisfaction_Score
+FROM customer c
+WHERE Cust_Satisfaction_Score > (
+   SELECT AVG(Cust_Satisfaction_Score) 
+   FROM customer 
+   WHERE state_cd = c.state_cd
+);
+
+9.Find customers with a credit limit higher than the average credit limit.
+SELECT Client_Num, Customer_Age, Income
+FROM customer
+WHERE Client_Num IN (
+   SELECT Credit_num
+   FROM credit_card
+   WHERE Credit_Limit > (SELECT AVG(Credit_Limit) FROM credit_card)
+);
+
+
+10.List customers whose total transaction amount is higher than the transaction amount for any customer in a different state.
+SELECT Client_Num, Customer_Age, Income
+FROM customer c
+WHERE Client_Num IN (
+   SELECT Credit_num 
+   FROM credit_card 
+   WHERE Total_Trans_Amt > (
+      SELECT MAX(Total_Trans_Amt) 
+      FROM credit_card cc 
+      WHERE c.state_cd <> cc.state_cd
+   )
+);
+
