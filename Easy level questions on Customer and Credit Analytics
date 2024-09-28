@@ -25,35 +25,35 @@ WHERE cc.Delinquent_Acc = 'Yes';
 
 5.List the total number of clients in each job category with a customer satisfaction score below 3.
 SELECT Customer_Job, COUNT(Client_Num) AS Num_Clients
-FROM your_table_name
+FROM customer
 WHERE Cust_Satisfaction_Score < 3
 GROUP BY Customer_Job;
 
 6.Find the maximum and minimum income for each state.
 SELECT state_cd, MAX(Income) AS Max_Income, MIN(Income) AS Min_Income
-FROM your_table_name
+FROM customer
 GROUP BY state_cd;
 
 7.List education levels with the average number of dependents greater than 1.
 SELECT Education_Level, AVG(Dependent_Count) AS Avg_Dependents
-FROM your_table_name
+FROM customer
 GROUP BY Education_Level
 HAVING Avg_Dependents > 1;
 
 8.Find the number of male and female clients in each state, ordered by state.
 SELECT state_cd, Gender, COUNT(Client_Num) AS Num_Clients
-FROM your_table_name
+FROM credit_card
 GROUP BY state_cd, Gender
 ORDER BY state_cd;
 
 9.Find the average income for each education level.
 SELECT Education_Level, AVG(Income) AS Avg_Income
-FROM your_table_name
+FROM customer
 GROUP BY Education_Level;
 
 10.Find card categories with an average annual fee greater than $50 and order by average annual fees in ascending order.
 SELECT Card_Category, AVG(Annual_Fees) AS Avg_Annual_Fees
-FROM your_table_name
+FROM customer
 GROUP BY Card_Category
 HAVING Avg_Annual_Fees > 50
 ORDER BY Avg_Annual_Fees ASC;
