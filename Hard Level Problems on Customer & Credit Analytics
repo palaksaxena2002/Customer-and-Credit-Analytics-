@@ -1,6 +1,6 @@
-##10 Hard level questions related to the Customer & Credit Analytics
+#10 Hard level questions related to the Customer & Credit Analytics
 
-###Find the customer with the highest revolving balance within each zip code.
+1.Find the customer with the highest revolving balance within each zip code.
 WITH Top_Revolving_By_Zip AS (
     SELECT c.Zipcode, c.Client_Num, cc.Total_Revolving_Bal,
            RANK() OVER (PARTITION BY c.Zipcode ORDER BY cc.Total_Revolving_Bal DESC) AS RevRank
@@ -11,7 +11,7 @@ SELECT *
 FROM Top_Revolving_By_Zip
 WHERE RevRank = 1;
 
-###List customers with more dependents than the average for their marital status.
+2.List customers with more dependents than the average for their marital status.
 WITH Avg_Dependents_By_Marital_Status AS (
     SELECT Marital_Status, AVG(Dependent_Count) AS AvgDependents
     FROM customer
@@ -22,7 +22,7 @@ FROM customer c
 JOIN Avg_Dependents_By_Marital_Status adms ON c.Marital_Status = adms.Marital_Status
 WHERE c.Dependent_Count > adms.AvgDependents;
 
-###Calculate the difference between a customer's income and the average income within their education level.
+3.Calculate the difference between a customer's income and the average income within their education level.
 WITH Avg_Income_By_Education AS (
     SELECT Education_Level, AVG(Income) AS AvgIncome
     FROM customer
@@ -32,7 +32,7 @@ SELECT c.Client_Num, c.Customer_Age, c.Education_Level, c.Income, (c.Income - ai
 FROM customer c
 JOIN Avg_Income_By_Education aibe ON c.Education_Level = aibe.Education_Level;
 
-### Find customers whose income is above the average income for all customers.
+4.Find customers whose income is above the average income for all customers.
 WITH Avg_Income AS (
     SELECT AVG(Income) AS AvgIncome
     FROM customer
@@ -41,7 +41,7 @@ SELECT Client_Num, Customer_Age, Income
 FROM customer
 WHERE Income > (SELECT AvgIncome FROM Avg_Income);
 
-###Find customers with a higher customer satisfaction score than the average for their state.
+5.Find customers with a higher customer satisfaction score than the average for their state.
 WITH Avg_Satisfaction_By_State AS (
     SELECT state_cd, AVG(Cust_Satisfaction_Score) AS AvgSatisfaction
     FROM customer
@@ -52,31 +52,20 @@ FROM customer c
 JOIN Avg_Satisfaction_By_State ass ON c.state_cd = ass.state_cd
 WHERE c.Cust_Satisfaction_Score > ass.AvgSatisfaction;
 
-###Find the customers who fall into the top 10% of credit card users based on transaction amounts.
+6.Find the customers who fall into the top 10% of credit card users based on transaction amounts.
 SELECT Credit_num, Total_Trans_Amt,
        NTILE(10) OVER (ORDER BY Total_Trans_Amt DESC) AS Top_10_Percentile
 FROM credit_card
 WHERE NTILE(10) OVER (ORDER BY Total_Trans_Amt DESC) = 1;
 
-###Rank customers by their credit limit, showing ties with the same rank.
-SELECT Credit_num, Credit_Limit,
-       DENSE_RANK() OVER (ORDER BY Credit_Limit DESC) AS Rank_Credit_Limit
-FROM credit_card;
-
-
-###Determine the total revolving balance for each customer and the cumulative total for all customers in their state.
+7.Determine the total revolving balance for each customer and the cumulative total for all customers in their state.
 SELECT c.Client_Num, c.state_cd, cc.Total_Revolving_Bal,
        SUM(cc.Total_Revolving_Bal) OVER (PARTITION BY c.state_cd ORDER BY c.Client_Num) AS Running_Revolving_Bal_By_State
 FROM customer c
 JOIN credit_card cc ON c.Client_Num = cc.Credit_num;
 
 
-###List the cumulative interest earned by customers in order of activation date.
-SELECT Credit_num, Interest_Earned,
-       SUM(Interest_Earned) OVER (ORDER BY Week_Start_Date) AS Cumulative_Interest_Earned
-FROM credit_card;
-
-###List customers whose total transaction amount is higher than the average for customers who have activated their card within 30 days.
+8.List customers whose total transaction amount is higher than the average for customers who have activated their card within 30 days.
 SELECT Client_Num, Customer_Age, Income
 FROM customer
 WHERE Client_Num IN (
@@ -88,5 +77,27 @@ WHERE Client_Num IN (
       WHERE Activation_30_Days = 'Yes'
    )
 );
+
+9.Find customers who are in the top 10% in terms of total transaction amount.
+WITH Ranked_Customers AS (
+    SELECT Credit_num, Total_Trans_Amt,
+           NTILE(10) OVER (ORDER BY Total_Trans_Amt DESC) AS Percentile
+    FROM credit_card
+)
+SELECT * 
+FROM Ranked_Customers
+WHERE Percentile = 1;
+
+10.Find customers with income greater than the average income of customers with a personal loan.
+WITH Avg_Income_Personal_Loan AS (
+    SELECT AVG(Income) AS AvgIncome
+    FROM customer
+    WHERE Personal_Loan = 'Yes'
+)
+SELECT Client_Num, Customer_Age, Income
+FROM customer
+WHERE Income > (SELECT AvgIncome FROM Avg_Income_Personal_Loan);
+
+
 
 
